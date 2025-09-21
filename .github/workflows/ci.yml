@@ -1,0 +1,24 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Build Spring Boot
+      run: cd intelvestor-backend && ./mvnw -B package
+    - name: Build ML image
+      run: docker build -t intelvestor-ml ./intelvestor-ml
+    - name: Build Frontend
+      run: cd intelvestor-frontend && npm ci && npm run build
+    # Add deploy to Vercel/Render with secrets
