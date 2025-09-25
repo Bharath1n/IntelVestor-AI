@@ -1,4 +1,3 @@
-```
 # Environment variables
 .env
 intelvestor-backend/.env
@@ -11,10 +10,10 @@ intelvestor-frontend/.env
 # Java/Spring Boot (Backend)
 intelvestor-backend/target/
 intelvestor-backend/*.log
-intelvestor-backend/.mvn/
-intelvestor-backend/mvnw
-intelvestor-backend/mvnw.cmd
-intelvestor-backend/.mvn/wrapper/maven-wrapper.jar
+# intelvestor-backend/.mvn/  # Commented out to allow tracking
+# intelvestor-backend/mvnw   # Commented out to allow tracking
+# intelvestor-backend/mvnw.cmd  # Commented out to allow tracking
+# intelvestor-backend/.mvn/wrapper/maven-wrapper.jar  # Commented out to allow tracking
 
 # Python/FastAPI (ML Microservice)
 intelvestor-ml/__pycache__/
@@ -60,4 +59,3 @@ Thumbs.db
 *.swp
 *~
 *.log
-```
