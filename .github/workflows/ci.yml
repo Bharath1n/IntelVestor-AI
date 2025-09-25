@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Spring Boot
         run: |
-          cd intelvestor-backend  # Remove or correct the first cd if it's a typo
+          cd intelvestor-backend
           ./mvnw -B package --file pom.xml
           cp target/intelvestor-backend-0.0.1-SNAPSHOT.jar .
 
