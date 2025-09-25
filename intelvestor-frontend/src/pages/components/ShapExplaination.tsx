@@ -4,7 +4,7 @@ interface ShapProps {
   explanation: string;
 }
 
-const ShapExplaination: React.FC<ShapProps> = ({ shap, explanation }) => {
+const ShapExplanation: React.FC<ShapProps> = ({ shap, explanation }) => {
   const data = {
     labels: shap.map((s: { feature: string }) => s.feature),
     datasets: [
@@ -27,4 +27,4 @@ const ShapExplaination: React.FC<ShapProps> = ({ shap, explanation }) => {
   );
 };
 
-export default ShapExplaination;
+export default ShapExplanation;

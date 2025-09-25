@@ -9,6 +9,17 @@ import shap
 import numpy as np
 
 def ensemble_predict(features_df, horizon, sentiment_score):
+    """
+    Generate ensemble predictions using ARIMA, Prophet, XGBoost, and LSTM.
+    
+    Args:
+        features_df: DataFrame with features and 'Close' column.
+        horizon: Number of days to predict.
+        sentiment_score: Sentiment score to incorporate.
+    
+    Returns:
+        List of dictionaries with date, prediction, and confidence.
+    """
     target = 'Close'
     X = features_df.drop(columns=['Date', target]).values
     y = features_df[target].values
@@ -55,11 +66,21 @@ def ensemble_predict(features_df, horizon, sentiment_score):
         last_input = np.roll(last_input, -1)
         last_input[-1] = pred
 
+    # Ensemble prediction
     ensemble = 0.2 * arima_pred + 0.3 * prophet_pred + 0.3 * np.array(xgb_pred) + 0.2 * scaler.inverse_transform(np.array(lstm_pred).reshape(-1,1)).flatten()
     dates = pd.date_range(start=features_df['Date'].iloc[-1] + pd.Timedelta(days=1), periods=horizon)
     return [{"date": str(date.date()), "pred": float(pred), "conf": 0.05} for date, pred in zip(dates, ensemble)]
 
 def explain_shap(features_df):
+    """
+    Generate SHAP explanations for feature contributions.
+    
+    Args:
+        features_df: DataFrame with features and 'Close' column.
+    
+    Returns:
+        List of dictionaries with feature names and SHAP values.
+    """
     X = features_df.drop(columns=['Date', 'Close'])
     xgb_model = XGBRegressor().fit(X, features_df['Close'])
     explainer = shap.TreeExplainer(xgb_model)

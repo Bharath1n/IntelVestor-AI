@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { getPrediction } from '../api/api';
 import { useAuth } from '@clerk/clerk-react';
 
-interface Prediction {
+interface PredictionData {
   symbol: string;
-  prediction: number[];
+  prediction: { date: string; pred: number; conf: number }[];
   sentiment: { score: number; headlines: string[] };
   shap: { feature: string; value: number }[];
   explanation: string;
@@ -12,7 +12,7 @@ interface Prediction {
 
 const SentimentAnalysis: React.FC = () => {
   const { getToken } = useAuth();
-  const [data, setData] = useState<Prediction | null>(null);
+  const [data, setData] = useState<PredictionData | null>(null);
   const [symbol, setSymbol] = useState('AXISBANK');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

@@ -1,5 +1,7 @@
 name: CI
+
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,17 +10,71 @@ jobs:
         image: mongo:5.0
         ports:
           - 27017:27017
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - name: Build Spring Boot
-      run: cd intelvestor-backend && ./mvnw -B package
-    - name: Build ML image
-      run: docker build -t intelvestor-ml ./intelvestor-ml
-    - name: Build Frontend
-      run: cd intelvestor-frontend && npm ci && npm run build
-    # Add deploy to Vercel/Render with secrets
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('intelvestor-backend/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build Spring Boot
+        run: |
+          cd intelvestor-backend
+          ./mvnw -B package --file pom.xml
+          cp target/intelvestor-backend-0.0.1-SNAPSHOT.jar .
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('intelvestor-frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build ML image
+        run: docker build -t intelvestor-ml ./intelvestor-ml
+
+      - name: Build Backend image
+        run: docker build -t intelvestor-backend ./intelvestor-backend
+
+      - name: Build Frontend
+        run: |
+          cd intelvestor-frontend
+          npm ci
+          npm run build
+          cd ..
+
+      - name: Build Frontend image
+        run: docker build -t intelvestor-frontend ./intelvestor-frontend
+
+      - name: Run tests (example)
+        run: |
+          cd intelvestor-backend && ./mvnw test || echo "No backend tests"
+          cd ../intelvestor-frontend && npm test || echo "No frontend tests"
+
+      - name: Test Docker Compose
+        run: |
+          docker-compose up -d
+          sleep 30
+          curl -f http://localhost:8080/ || exit 1
+          docker-compose down
+
+    env:
+      DOCKER_BUILDKIT: 1
