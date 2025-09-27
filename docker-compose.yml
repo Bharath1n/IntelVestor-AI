@@ -50,17 +50,15 @@ services:
         condition: service_healthy
 
   mongo:
-    image: mongo:5.0
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+  image: mongo:5.0
+  volumes:
+    - mongo-data:/data/db
+  healthcheck:
+    test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
 
 volumes:
   mongo-data:

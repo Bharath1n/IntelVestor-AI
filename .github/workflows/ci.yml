@@ -9,11 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
 
     steps:
       - name: Checkout code
@@ -52,6 +47,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Clean up Docker environment
+        run: |
+          docker-compose down -v --remove-orphans || true
+          docker system prune -f --volumes || true
 
       - name: Build ML image
         run: docker build -t intelvestor-ml ./intelvestor-ml
@@ -97,7 +100,7 @@ jobs:
           echo "GOOGLE_API_KEY=$GOOGLE_API_KEY" >> intelvestor-ml/.env
           echo "VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY" > intelvestor-frontend/.env
           echo "VITE_BACKEND_URL=$VITE_BACKEND_URL" >> intelvestor-frontend/.env
-          docker-compose up -d
+          docker-compose -f docker-compose.yml up -d
           for i in {1..30}; do
             if curl -f http://localhost:8080/actuator/health; then
               echo "Backend is up!"
@@ -108,10 +111,12 @@ jobs:
           done
           if [ $i -eq 30 ]; then
             echo "Backend failed to start in time"
+            docker-compose logs
             exit 1
           fi
-          curl -f http://localhost:8000/health || echo "ML service health check failed"
-          docker-compose down
+          curl -f http://localhost:8000/health || { echo "ML service health check failed"; docker-compose logs; exit 1; }
+          curl -f http://localhost:3000 || { echo "Frontend health check failed"; docker-compose logs; exit 1; }
+          docker-compose down -v
 
     env:
       DOCKER_BUILDKIT: 1
