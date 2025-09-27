@@ -48,20 +48,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-          buildkitd-flags: --debug
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Clean up Docker environment
         run: |
           docker-compose down -v --remove-orphans || true
@@ -69,15 +55,11 @@ jobs:
 
       - name: Build ML image
         run: |
-          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
-                       --cache-to=type=local,dest=/tmp/.buildx-cache \
-                       -t intelvestor-ml ./intelvestor-ml
+          docker build -t intelvestor-ml ./intelvestor-ml
 
       - name: Build Backend image
         run: |
-          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
-                       --cache-to=type=local,dest=/tmp/.buildx-cache \
-                       -t intelvestor-backend ./intelvestor-backend
+          docker build -t intelvestor-backend ./intelvestor-backend
 
       - name: Build Frontend
         run: |
@@ -88,9 +70,7 @@ jobs:
 
       - name: Build Frontend image
         run: |
-          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
-                       --cache-to=type=local,dest=/tmp/.buildx-cache \
-                       -t intelvestor-frontend ./intelvestor-frontend
+          docker build -t intelvestor-frontend ./intelvestor-frontend
 
       - name: Run tests
         run: |
