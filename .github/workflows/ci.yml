@@ -83,6 +83,9 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
+      - name: Validate Docker Compose file
+        run: docker-compose -f docker-compose.yml config
+
       - name: Test Docker Compose
         env:
           SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/intelvestor

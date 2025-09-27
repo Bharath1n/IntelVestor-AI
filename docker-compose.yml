@@ -1,15 +1,32 @@
+version: '3.8'
 services:
+  mongo:
+    image: mongo:5.0
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  ml:
+    image: intelvestor-ml
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
   backend:
-    build:
-      context: ./intelvestor-backend
-      dockerfile: Dockerfile
+    image: intelvestor-backend
     ports:
       - "8080:8080"
-    env_file:
-      - ./intelvestor-backend/.env
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/intelvestor
-      - ML_SERVICE_URL=http://ml:8000
     depends_on:
       mongo:
         condition: service_healthy
@@ -21,44 +38,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-
-  ml:
-    build:
-      context: ./intelvestor-ml
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    env_file:
-      - ./intelvestor-ml/.env
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
-
   frontend:
-    build:
-      context: ./intelvestor-frontend
-      dockerfile: Dockerfile
+    image: intelvestor-frontend
     ports:
       - "3000:5173"
-    env_file:
-      - ./intelvestor-frontend/.env
     depends_on:
       backend:
         condition: service_healthy
-
-  mongo:
-  image: mongo:5.0
-  volumes:
-    - mongo-data:/data/db
-  healthcheck:
-    test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
-    start_period: 30s
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 volumes:
   mongo-data:
