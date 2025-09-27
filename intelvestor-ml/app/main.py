@@ -60,6 +60,10 @@ async def predict(symbol: str, horizon: int):
             "explanation": f"Error: {str(e)}"
         }
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the IntelVestor ML API"}

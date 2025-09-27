@@ -1,33 +1,53 @@
-version: '3.8'
-
 services:
   backend:
-    build: ./intelvestor-backend
+    build:
+      context: ./intelvestor-backend
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     env_file:
       - ./intelvestor-backend/.env
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/intelvestor
+      - ML_SERVICE_URL=http://ml:8000
     depends_on:
-      - mongo
-      - ml
+      mongo:
+        condition: service_healthy
+      ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   ml:
-    build: ./intelvestor-ml
+    build:
+      context: ./intelvestor-ml
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     env_file:
       - ./intelvestor-ml/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   frontend:
-    build: ./intelvestor-frontend
+    build:
+      context: ./intelvestor-frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:5173"
     env_file:
       - ./intelvestor-frontend/.env
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   mongo:
     image: mongo:5.0
@@ -35,6 +55,12 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   mongo-data:

@@ -3,8 +3,6 @@ from newsapi import NewsApiClient
 import os
 import statistics
 
-sentiment_pipeline = pipeline("sentiment-analysis", model="mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis")
-
 def compute_sentiment(symbol):
     api_key = os.getenv("NEWS_API_KEY")
     if not api_key:
@@ -13,6 +11,7 @@ def compute_sentiment(symbol):
     try:
         articles = newsapi.get_everything(q=symbol, language='en', sort_by='publishedAt', page_size=10)
         texts = [article['title'] + ' ' + (article['description'] or '') for article in articles['articles']]
+        sentiment_pipeline = pipeline("sentiment-analysis", model="mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis")
         results = sentiment_pipeline(texts)
         scores = [res['score'] if res['label'] == 'positive' else -res['score'] for res in results]
         aggregated_score = statistics.mean(scores) if scores else 0
