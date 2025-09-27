@@ -77,6 +77,20 @@ jobs:
           cd intelvestor-backend && ./mvnw test || echo "No backend tests"
           cd ../intelvestor-frontend && npm test || echo "No frontend tests"
 
+      - name: Create .env files
+        env:
+          SPRING_DATA_MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "SPRING_DATA_MONGODB_URI=$SPRING_DATA_MONGODB_URI" > intelvestor-backend/.env
+          echo "CLERK_SECRET_KEY=$CLERK_SECRET_KEY" >> intelvestor-backend/.env
+          echo "NEWS_API_KEY=$NEWS_API_KEY" > intelvestor-ml/.env
+          echo "GOOGLE_API_KEY=$GOOGLE_API_KEY" >> intelvestor-ml/.env
+          echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_bmF0aXZlLWRydW0tOTcuY2xlcmsuYWNjb3VudHMuZGV2JA" > intelvestor-frontend/.env
+          echo "VITE_BACKEND_URL=http://backend:8080" >> intelvestor-frontend/.env
+
       - name: Set up Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -87,18 +101,7 @@ jobs:
         run: docker-compose -f docker-compose.yml config
 
       - name: Test Docker Compose
-        env:
-          SPRING_DATA_MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          echo "NEWS_API_KEY=$NEWS_API_KEY" > intelvestor-ml/.env
-          echo "GOOGLE_API_KEY=$GOOGLE_API_KEY" >> intelvestor-ml/.env
-          echo "SPRING_DATA_MONGODB_URI=$SPRING_DATA_MONGODB_URI" > intelvestor-backend/.env
-          echo "CLERK_SECRET_KEY=$CLERK_SECRET_KEY" >> intelvestor-backend/.env
-          echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_bmF0aXZlLWRydW0tOTcuY2xlcmsuYWNjb3VudHMuZGV2JA" > intelvestor-frontend/.env
-          echo "VITE_BACKEND_URL=http://backend:8080" >> intelvestor-frontend/.env
           docker-compose -f docker-compose.yml up -d || { docker-compose logs; exit 1; }
           for i in {1..30}; do
             if curl -f http://localhost:8080/actuator/health; then
