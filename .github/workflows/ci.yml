@@ -103,7 +103,7 @@ jobs:
           echo "GOOGLE_API_KEY=$GOOGLE_API_KEY" >> intelvestor-ml/.env
           echo "VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY" > intelvestor-frontend/.env
           echo "VITE_BACKEND_URL=$VITE_BACKEND_URL" >> intelvestor-frontend/.env
-          docker-compose -f docker-compose.yml up -d
+          docker-compose -f docker-compose.yml up -d || { docker-compose logs; exit 1; }
           for i in {1..30}; do
             if curl -f http://localhost:8080/actuator/health; then
               echo "Backend is up!"
