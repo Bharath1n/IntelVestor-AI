@@ -12,6 +12,7 @@ import SocialInsights from './pages/SocialInsights';
 import Support from './pages/Support';
 import Dashboard from './pages/components/Dashboard';
 import SideNav from './pages/components/SideNav';
+import Health from './pages/Health';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
 
@@ -37,6 +38,7 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<><Header /><Home /><Footer /></>} />
+          <Route path="/health" element={<Health />} />
           <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
           <Route path="/sentiment" element={<ProtectedRoute><SentimentAnalysis /></ProtectedRoute>} />
           <Route path="/predictions" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />

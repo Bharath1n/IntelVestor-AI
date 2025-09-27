@@ -51,16 +51,30 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Clean up Docker environment
         run: |
           docker-compose down -v --remove-orphans || true
           docker system prune -f --volumes || true
 
       - name: Build ML image
-        run: docker build -t intelvestor-ml ./intelvestor-ml
+        run: |
+          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
+                       --cache-to=type=local,dest=/tmp/.buildx-cache \
+                       -t intelvestor-ml ./intelvestor-ml
 
       - name: Build Backend image
-        run: docker build -t intelvestor-backend ./intelvestor-backend
+        run: |
+          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
+                       --cache-to=type=local,dest=/tmp/.buildx-cache \
+                       -t intelvestor-backend ./intelvestor-backend
 
       - name: Build Frontend
         run: |
@@ -70,7 +84,10 @@ jobs:
           cd ..
 
       - name: Build Frontend image
-        run: docker build -t intelvestor-frontend ./intelvestor-frontend
+        run: |
+          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
+                       --cache-to=type=local,dest=/tmp/.buildx-cache \
+                       -t intelvestor-frontend ./intelvestor-frontend
 
       - name: Run tests
         run: |
@@ -95,6 +112,8 @@ jobs:
         run: |
           echo "NEWS_API_KEY=$NEWS_API_KEY" > intelvestor-ml/.env
           echo "GOOGLE_API_KEY=$GOOGLE_API_KEY" >> intelvestor-ml/.env
+          echo "SPRING_DATA_MONGODB_URI=$SPRING_DATA_MONGODB_URI" > intelvestor-backend/.env
+          echo "CLERK_SECRET_KEY=$CLERK_SECRET_KEY" >> intelvestor-backend/.env
           echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_bmF0aXZlLWRydW0tOTcuY2xlcmsuYWNjb3VudHMuZGV2JA" > intelvestor-frontend/.env
           echo "VITE_BACKEND_URL=http://backend:8080" >> intelvestor-frontend/.env
           docker-compose -f docker-compose.yml up -d || { docker-compose logs; exit 1; }
@@ -112,8 +131,20 @@ jobs:
             exit 1
           fi
           curl -f http://localhost:8000/health || { echo "ML service health check failed"; docker-compose logs; exit 1; }
-          curl -f http://localhost:3000 || { echo "Frontend health check failed"; docker-compose logs; exit 1; }
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health; then
+              echo "Frontend is up!"
+              break
+            fi
+            echo "Waiting for frontend... ($i/30)"
+            sleep 2
+          done
+          if [ $i -eq 30 ]; then
+            echo "Frontend failed to start in time"
+            docker-compose logs frontend
+            exit 1
+          fi
           docker-compose down -v
 
     env:
-      DOCKER_BUILDKIT: 1  
+      DOCKER_BUILDKIT: 1
