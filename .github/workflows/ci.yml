@@ -32,6 +32,7 @@ jobs:
       - name: Build Spring Boot
         run: |
           cd intelvestor-backend
+          chmod +x mvnw
           ./mvnw -B package --file pom.xml
           cp target/intelvestor-backend-0.0.1-SNAPSHOT.jar .
 
