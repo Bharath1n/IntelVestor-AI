@@ -116,4 +116,4 @@ jobs:
           docker-compose down -v
 
     env:
-      DOCKER_BUILDKIT: 1
+      DOCKER_BUILDKIT: 1  
