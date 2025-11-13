@@ -64,7 +64,7 @@ intelvestor-ai/
 └── README.md
 
 Setup Instructions:
-1. Clone repo: git clone <repo-url>
+1. Clone repository: git clone <repo-url>.
 2. Create .env files in backend, ml, frontend using .env.example.
 3. Install dependencies:
    - Backend: cd intelvestor-backend && mvn clean install
