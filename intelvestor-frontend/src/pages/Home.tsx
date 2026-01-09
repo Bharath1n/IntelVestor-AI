@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
@@ -19,7 +19,7 @@ import {
 
 declare global {
   interface Window {
-    TradingView: any;
+    TradingView: unknown;
   }
 }
 
@@ -72,13 +72,13 @@ const Home: React.FC = () => {
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const goToNext = () => setActiveIndex((prev) => (prev + 1) % testimonials.length);
+  const goToNext = useCallback(() => setActiveIndex((prev) => (prev + 1) % testimonials.length), [testimonials.length]);
   const goToPrev = () => setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
   useEffect(() => {
     const interval = setInterval(goToNext, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [goToNext]);
 
   return (
     <>

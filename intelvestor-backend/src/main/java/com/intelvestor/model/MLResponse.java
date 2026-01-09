@@ -13,4 +13,12 @@ public class MLResponse {
     private List<Map<String, Object>> shap;
     private Map<String, Object> sentiment;
     private String explanation;
+
+    public void setPrediction(List<Map<String, Object>> prediction) {
+        this.predictions = prediction;
+    }
+
+    public List<Map<String, Object>> getPrediction() {
+        return this.predictions;
+    }
 }

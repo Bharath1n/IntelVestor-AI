@@ -16,4 +16,13 @@ public class User {
     private String name;
     private List<String> watchlist; // Ticker symbols
     private Map<String, Object> preferences;
+    private String token; // JWT token for authentication
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }

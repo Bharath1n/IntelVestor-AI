@@ -1,46 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-interface TradingViewWidget {
-  new (config: {
-    width: string;
-    height: number;
-    symbol: string;
-    interval: string;
-    timezone: string;
-    theme: string;
-    style: string;
-    locale: string;
-    toolbar_bg: string;
-    enable_publishing: boolean;
-    allow_symbol_change: boolean;
-    withDateRanges: boolean;
-    hide_side_toolbar: boolean;
-    details: boolean;
-    hotlist: boolean;
-    calendar: boolean;
-    container_id: string;
-  }): void;
-}
 
-interface TradingViewWindow extends Window {
-  TradingView: { widget: TradingViewWidget };
-}
-
-declare let window: TradingViewWindow;
 
 const Insights = () => {
-  const [symbol, setSymbol] = useState('BSE:RELIANCE');
-
   useEffect(() => {
     const scriptChart = document.createElement('script');
     scriptChart.src = 'https://s3.tradingview.com/tv.js';
     scriptChart.async = true;
     scriptChart.onload = () => {
-      if (window.TradingView) {
-        new window.TradingView.widget({
+      if ((window as { TradingView?: unknown }).TradingView) {
+        new ((window as { TradingView: { widget: new (config: unknown) => unknown } }).TradingView.widget)({
           width: '100%',
           height: 500,
-          symbol,
+          symbol: 'BSE:RELIANCE',
           interval: 'D',
           timezone: 'Asia/Kolkata',
           theme: 'dark',
@@ -115,24 +87,11 @@ const Insights = () => {
       const chartContainer = document.getElementById('tradingview_chart');
       if (chartContainer) chartContainer.innerHTML = '';
     };
-  }, [symbol]);
+  }, []);
 
   return (
     <div className="p-6 text-white bg-gray-900 min-h-screen">
       <div className="space-y-8 max-w-5xl mx-auto">
-        <div className="mb-4">
-          <label htmlFor="symbol-input" className="text-lg font-semibold text-blue-400">
-            Stock Symbol:
-          </label>
-          <input
-            id="symbol-input"
-            type="text"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-            className="ml-2 p-2 rounded bg-gray-800 text-white border border-gray-700"
-            placeholder="e.g., BSE:RELIANCE"
-          />
-        </div>
         <div className="rounded-2xl border border-gray-700 bg-gray-800 p-6 shadow-lg">
           <h3 className="text-xl font-semibold mb-4 text-blue-400">Stock Chart</h3>
           <div className="tradingview-widget-container">
