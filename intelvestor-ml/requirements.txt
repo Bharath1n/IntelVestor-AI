@@ -12,8 +12,8 @@ xgboost==1.7.6
 tensorflow==2.14.0
 statsmodels==0.14.0
 prophet==1.1.5
-llvmlite==0.46.0
 numba==0.59.1
+llvmlite==0.42.0
 shap==0.44.0
 python-dotenv==1.0.1
 requests==2.32.3
